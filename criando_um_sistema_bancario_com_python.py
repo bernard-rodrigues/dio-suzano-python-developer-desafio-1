@@ -47,11 +47,6 @@ def emitir_extrato(saldo, /, *, extrato):
     print(f"Saldo atual: R${saldo:.2f}")
 
 def novo_usuario(usuarios, nome, data_nascimento, cpf, endereco):
-    for usuario in usuarios:
-        if usuario["cpf"] == cpf:
-            print("Já existe usuário cadastrado com o CPF informado.")
-            return usuarios
-    
     usuarios.append({
         "nome": nome,
         "data_nascimento": data_nascimento,
@@ -62,16 +57,12 @@ def novo_usuario(usuarios, nome, data_nascimento, cpf, endereco):
 
     return usuarios
 
-def nova_conta(cpf, usuarios, id_atual):
-    usuario_atual = None
-    for usuario in usuarios:
-        if usuario["cpf"] == cpf:
-            usuario_atual = usuario
-            break
+def nova_conta(cpf, contas, agencia, id_atual):
+    usuario_atual = get_usuario(cpf)
     
     if usuario_atual:
         contas.append({
-            "agencia": "0001",
+            "agencia": agencia,
             "conta": id_atual,
             "usuario": usuario_atual,
         })
@@ -80,6 +71,14 @@ def nova_conta(cpf, usuarios, id_atual):
     else:
         print("Não existe usuário com o CPF informado.")
         return contas, id_atual
+    
+def get_usuario(cpf):
+    usuario_atual = None
+    for usuario in usuarios:
+        if usuario["cpf"] == cpf:
+            usuario_atual = usuario
+            break
+    return usuario_atual
 
 contas = []
 usuarios = []
@@ -88,6 +87,7 @@ saldo = 0
 extrato = ""
 numero_saques = 0
 
+AGENCIA = "0001"
 LIMITE = 500
 LIMITE_SAQUES = 3
 
@@ -96,26 +96,30 @@ while True:
 
     if opcao == "nu":
         try:
-            nome = input("Digite seu nome: ")
-            data_nascimento = datetime.strptime(input("Digite sua data de nascimento (dd/mm/aaaa): "), "%d/%m/%Y").date()
             cpf = input("Digite seu CPF (apenas números): ")
-            
-            print("\nEndereço:")
-            logradouro = input("Digite seu logradouro (sem número): ")
-            numero = input("Digite o número de sua residência (e complemento, se houver): ")
-            bairro = input("Digite seu bairro: ")
-            cidade = input("Digite o nome de sua cidade: ")
-            uf = input("Digite a sigla de seu estado: " ).upper()
-            endereco = f"{logradouro}, {numero} - {bairro} - {cidade}/{uf}"
-            
-            usuarios = novo_usuario(usuarios, nome, data_nascimento, cpf, endereco)
+
+            if not get_usuario(cpf):
+                nome = input("Digite seu nome: ")
+                data_nascimento = datetime.strptime(input("Digite sua data de nascimento (dd/mm/aaaa): "), "%d/%m/%Y").date()
+                
+                print("\nEndereço:")
+                logradouro = input("Digite seu logradouro (sem número): ")
+                numero = input("Digite o número de sua residência (e complemento, se houver): ")
+                bairro = input("Digite seu bairro: ")
+                cidade = input("Digite o nome de sua cidade: ")
+                uf = input("Digite a sigla de seu estado: " ).upper()
+                endereco = f"{logradouro}, {numero} - {bairro} - {cidade}/{uf}"
+                
+                usuarios = novo_usuario(usuarios, nome, data_nascimento, cpf, endereco)
+            else:
+                print("Já existe usuário cadastrado com o CPF informado.")
         
         except:
             print("Revise os dados digitados. Note que sua data de nascimento deve estar no formato dd/mm/aaaa.")
 
     elif opcao == "nc":
         cpf = input("Digite seu CPF (apenas números): ")
-        contas, id_atual = nova_conta(cpf, usuarios, id_atual)
+        contas, id_atual = nova_conta(cpf, contas, AGENCIA, id_atual)
 
     elif opcao == "d":
         print("Depósito".center(30, "-"), end="\n\n")
