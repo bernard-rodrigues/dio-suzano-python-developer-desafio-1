@@ -6,6 +6,7 @@ menu = f"""
 
 [nu] Criar novo usuário
 [nc] Criar nova conta
+[lc] Listar contas
 [d] Depositar
 [s] Sacar
 [e] Extrato
@@ -72,6 +73,18 @@ def nova_conta(cpf, contas, agencia, id_atual):
         print("Não existe usuário com o CPF informado.")
         return contas, id_atual
     
+def listar_contas(contas):
+    if contas:
+        for conta in contas:
+            print(f"""
+Agência: {conta["agencia"]}
+Conta: {conta["conta"]}
+Proprietário: {conta["usuario"]["nome"]}
+"""
+            )
+    else:
+        print("O sistema não possui contas cadastradas.")
+    
 def get_usuario(cpf):
     usuario_atual = None
     for usuario in usuarios:
@@ -120,6 +133,9 @@ while True:
     elif opcao == "nc":
         cpf = input("Digite seu CPF (apenas números): ")
         contas, id_atual = nova_conta(cpf, contas, AGENCIA, id_atual)
+
+    elif opcao == "lc":
+        listar_contas(contas)
 
     elif opcao == "d":
         print("Depósito".center(30, "-"), end="\n\n")
