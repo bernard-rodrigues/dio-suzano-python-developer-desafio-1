@@ -5,6 +5,7 @@ menu = f"""
 {'BANCO PYTHON'.center(30, "-")}
 
 [nu] Criar novo usuário
+[nc] Criar nova conta
 [d] Depositar
 [s] Sacar
 [e] Extrato
@@ -45,31 +46,48 @@ def emitir_extrato(saldo, /, *, extrato):
     
     print(f"Saldo atual: R${saldo:.2f}")
 
-def novo_usuario(usuarios, id_atual, nome, data_nascimento, cpf, endereco):
+def novo_usuario(usuarios, nome, data_nascimento, cpf, endereco):
     for usuario in usuarios:
         if usuario["cpf"] == cpf:
             print("Já existe usuário cadastrado com o CPF informado.")
-            return usuarios, id_atual
+            return usuarios
     
     usuarios.append({
-        "agencia": "0001",
-        "conta": id_atual,
         "nome": nome,
         "data_nascimento": data_nascimento,
         "cpf": cpf,
         "endereco": endereco
     })
-    id_atual += 1
-    print(f"Olá, {nome}! Bem-vindo ao BANCO PYTHON!")
+    print(f"\nOlá, {nome}! Bem-vindo ao BANCO PYTHON!")
 
-    return usuarios, id_atual
+    return usuarios
 
+def nova_conta(cpf, usuarios, id_atual):
+    usuario_atual = None
+    for usuario in usuarios:
+        if usuario["cpf"] == cpf:
+            usuario_atual = usuario
+            break
+    
+    if usuario_atual:
+        contas.append({
+            "agencia": "0001",
+            "conta": id_atual,
+            "usuario": usuario_atual,
+        })
+        print(f"Conta criada com sucesso. Agência: {contas[-1]['agencia']}, Conta: {contas[-1]['conta']}")
+        return contas, id_atual+1
+    else:
+        print("Não existe usuário com o CPF informado.")
+        return contas, id_atual
+
+contas = []
 usuarios = []
 id_atual = 1
-
 saldo = 0
 extrato = ""
 numero_saques = 0
+
 LIMITE = 500
 LIMITE_SAQUES = 3
 
@@ -77,26 +95,27 @@ while True:
     opcao = input(menu)
 
     if opcao == "nu":
-        nome = input("Digite seu nome: ")
-        data_nascimento = datetime.strptime(input("Digite sua data de nascimento (dd/mm/aaaa): "), "%d/%m/%Y").date()
-        cpf = input("Digite seu CPF (apenas números): ")
+        try:
+            nome = input("Digite seu nome: ")
+            data_nascimento = datetime.strptime(input("Digite sua data de nascimento (dd/mm/aaaa): "), "%d/%m/%Y").date()
+            cpf = input("Digite seu CPF (apenas números): ")
+            
+            print("\nEndereço:")
+            logradouro = input("Digite seu logradouro (sem número): ")
+            numero = input("Digite o número de sua residência (e complemento, se houver): ")
+            bairro = input("Digite seu bairro: ")
+            cidade = input("Digite o nome de sua cidade: ")
+            uf = input("Digite a sigla de seu estado: " ).upper()
+            endereco = f"{logradouro}, {numero} - {bairro} - {cidade}/{uf}"
+            
+            usuarios = novo_usuario(usuarios, nome, data_nascimento, cpf, endereco)
         
-        print("\nEndereço:")
-        logradouro = input("Digite seu logradouro (sem número): ")
-        numero = input("Digite o número de sua residência (e complemento, se houver): ")
-        bairro = input("Digite seu bairro: ")
-        cidade = input("Digite o nome de sua cidade: ")
-        uf = input("Digite a sigla de seu estado:" ).upper()
-        endereco = {
-            "logradouro": logradouro,
-            "numero": numero,
-            "bairro": bairro,
-            "cidade": cidade,
-            "uf": uf,
-        }
+        except:
+            print("Revise os dados digitados. Note que sua data de nascimento deve estar no formato dd/mm/aaaa.")
 
-        novo_usuario(usuarios, id_atual, nome, data_nascimento, cpf, endereco)
-
+    elif opcao == "nc":
+        cpf = input("Digite seu CPF (apenas números): ")
+        contas, id_atual = nova_conta(cpf, usuarios, id_atual)
 
     elif opcao == "d":
         print("Depósito".center(30, "-"), end="\n\n")
